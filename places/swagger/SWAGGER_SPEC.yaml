@@ -1,0 +1,315 @@
+info:
+  version: v1
+  title: 'Sample API'
+  description: ...
+  termsOfService: http://instagram.com/about/legal/terms/api
+
+################################################################################
+#                  Host, Base Path, Schemes and Content Types                  #
+################################################################################
+host: localhost:5000
+basePath: /
+schemes:
+  - http
+produces:
+  - application/json
+consumes:
+  - application/json
+
+################################################################################
+#                                   Tags                                       #
+################################################################################
+tags:
+  - name: Users
+  - name: Relationships
+    description: |
+      Relationships are expressed using the following terms:
+
+      **outgoing_status**: Your relationship to the user. Can be "follows",
+        "requested", "none".
+      **incoming_status**: A user's relationship to you. Can be "followed_by",
+        "requested_by", "blocked_by_you", "none".
+  - name: Media
+    description: |
+      At this time, uploading via the API is not possible. We made a conscious
+      choice not to add this for the following reasons:
+
+      * Instagram is about your life on the go â€“ we hope to encourage photos
+        from within the app.
+      * We want to fight spam & low quality photos. Once we allow uploading
+        from other sources, it's harder to control what comes into the Instagram
+        ecosystem. All this being said, we're working on ways to ensure users
+        have a consistent and high-quality experience on our platform.
+  - name: Commnts
+  - name: Likes
+  - name: Tags
+  - name: Location
+  - name: Subscribtions
+    description: |
+      사용자가 사진을 첨부하여 올린 게시물
+
+################################################################################
+#                                  Security                                    #
+################################################################################
+securityDefinitions:
+  oauth:
+    type: oauth2
+    flow: implicit
+    authorizationUrl: https://instagram.com/oauth/authorize/?client_id=CLIENT-ID&redirect_uri=REDIRECT-URI&response_type=token
+    scopes:
+      email: |
+       to read any and all data related to a user (e.g. following/followed-by
+        lists, photos, etc.) (granted by default)
+  key:
+    type: apiKey
+    in: query
+    name: access_token
+
+################################################################################
+#                                   Parameters                                 #
+################################################################################
+parameters:
+  user_id:
+    name: user_id
+    in: path
+    description: The user identifier number
+    type: number
+    required: true
+  tag_name:
+    name: tag_name
+    in: path
+    description: Tag name
+    type: string
+    required: true
+
+################################################################################
+#                                 Definitions                                  #
+################################################################################
+definitions:
+  User:
+    type: object
+    properties:
+      id:
+        type: integer
+      username:
+        type: string
+      email:
+        type: string
+      profile_picture:
+        type: string
+      gender:
+        type: string
+      dob:
+        type: string
+      counts:
+        type: object
+        properties:
+          media:
+            type: integer
+          follows:
+            type: integer
+          follwed_by:
+            type: integer
+  Media:
+    type: object
+    properties:
+      created_time:
+        description: Epoc time (ms)
+        type: integer
+      type:
+        type: string
+      filter:
+        type: string
+      tags:
+        type: array
+        items:
+          $ref: '#/definitions/Tag'
+      id:
+        type: integer
+      user:
+        $ref: '#/definitions/MiniProfile'
+      users_in_photo:
+        type: array
+        items:
+          $ref: '#/definitions/MiniProfile'
+      location:
+        $ref: '#/definitions/Location'
+      comments::
+        type: object
+        properties:
+          count:
+            type: integer
+          data:
+            type: array
+            items:
+              $ref: '#/definitions/Comment'
+      likes:
+        type: object
+        properties:
+          count:
+            type: integer
+          data:
+            type: array
+            items:
+              $ref: '#/definitions/MiniProfile'
+      images:
+        properties:
+          low_resolution:
+            $ref: '#/definitions/Image'
+          thumbnail:
+            $ref: '#/definitions/Image'
+          standard_resolution:
+            $ref: '#/definitions/Image'
+      videos:
+        properties:
+          low_resolution:
+            $ref: '#/definitions/Image'
+          standard_resolution:
+            $ref: '#/definitions/Image'
+  Location:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
+  Comment:
+    type: object
+    properties:
+      id:
+        type: string
+      created_at:
+        type: string
+        format: date-time
+      text:
+        type: string
+      user:
+        $ref: '#/definitions/MiniProfile'
+  Like:
+    type: object
+    properties:
+      user_name:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      type:
+        type: string
+      id:
+        type: string
+  News:
+    type: object
+    properties:
+      title:
+        type: string
+      text:
+        type: string
+      created_at:
+        type: string
+        format: date-time
+      images:
+        type: array
+        items:
+          $ref: '#/definitions/Image'
+      url:
+        type: string
+
+  FeaturedNews:
+    type: object
+    properties:
+      id:
+        type: number
+      image:
+        $ref: '#/definitions/Image'
+  NewsComment:
+    type: object
+    properties:
+      id:
+        type: number
+      text:
+        type: string
+      created_at:
+        type: string
+        format: date-time
+      user:
+        $ref: '#/definitions/MiniProfile'
+
+  NewsSimple:
+    type: object
+    properties:
+      id:
+        type: number
+      title:
+        type: string
+      thumbnail:
+        $ref: '#/definitions/Image'
+  Post:
+    type: object
+    properties:
+      created_at:
+        description: 게시물 작성 시각
+        type: string
+        format: date-time
+      id:
+        type: integer
+      user:
+        $ref: '#/definitions/MiniProfile'
+      comments::
+        type: object
+        properties:
+          count:
+            type: integer
+          data:
+            type: array
+            items:
+              $ref: '#/definitions/Comment'
+      likes:
+        type: object
+        properties:
+          count:
+            type: integer
+          data:
+            type: array
+            items:
+              $ref: '#/definitions/MiniProfile'
+      image:
+        $ref: '#/definitions/Image'
+  Tag:
+    type: object
+    properties:
+      media_count:
+        type: integer
+      name:
+        type: string
+  Image:
+    type: object
+    properties:
+      width:
+        type: integer
+      height:
+        type: integer
+      url:
+        type: string
+  MiniProfile:
+    type: object
+    description: A shorter version of User for likes array
+    properties:
+      username:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      profile_picture:
+        type: string
+  CommonResult:
+    type: object
+    properties:
+      result:
+        type: string
+        default: "ok"
